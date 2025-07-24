@@ -8,14 +8,13 @@ import WeatherWidget from '../components/WeatherWidget';
 import VirtualTour from '../components/VirtualTour';
 import LocalExperiencesCarousel from '../components/LocalExperiencesCarousel';
 import PriceAlerts from '../components/PriceAlerts';
-import ImageGallery from '../components/ImageGallery';
+import PropertyImageHero from '../components/PropertyImageHero';
 import supabase from '../lib/supabase';
 
-const { 
-  FiStar, FiMapPin, FiWifi, FiCoffee, FiCar, FiShield, FiCamera, 
-  FiSun, FiCloud, FiDroplet, FiThermometer, FiCompass, FiHeart, 
-  FiCalendar, FiAward, FiCheckCircle, FiInfo, FiTarget, FiLocation, 
-  FiLoader, FiMap, FiList
+const {
+  FiStar, FiMapPin, FiWifi, FiCoffee, FiCar, FiShield, FiCamera, FiSun, FiCloud, 
+  FiDroplet, FiThermometer, FiCompass, FiHeart, FiCalendar, FiAward, FiCheckCircle, 
+  FiInfo, FiTarget, FiLocation, FiLoader, FiMap, FiList
 } = FiIcons;
 
 // Use FiCompass as FiVirtualTour
@@ -24,7 +23,7 @@ const FiVirtualTour = FiCompass;
 const StayDetailsPage = () => {
   const { id } = useParams();
   const [activeTab, setActiveTab] = useState('overview');
-  const [viewMode, setViewMode] = useState('photos'); // 'photos','virtual-tour',or 'map' 
+  const [viewMode, setViewMode] = useState('photos'); // 'photos', 'virtual-tour', or 'map'
   const [loading, setLoading] = useState(true);
   const [property, setProperty] = useState(null);
   const [error, setError] = useState(null);
@@ -36,12 +35,13 @@ const StayDetailsPage = () => {
       try {
         setLoading(true);
         console.log('Fetching property details for ID:', id);
+
         const { data, error } = await supabase
           .from('properties_j293sk4l59')
           .select('*')
           .eq('id', id)
           .single();
-        
+
         if (error) {
           console.error('Error fetching property:', error);
           setError('Failed to load property details');
@@ -105,7 +105,12 @@ const StayDetailsPage = () => {
       images: [
         "https://images.unsplash.com/photo-1571896349842-33c89424de2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
         "https://images.unsplash.com/photo-1520637736862-4d197d17c92a?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
-        "https://images.unsplash.com/photo-1582719508461-905c673771fd?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80"
+        "https://images.unsplash.com/photo-1582719508461-905c673771fd?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1559827260-dc66d52bef19?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1544551763-46a013bb70d5?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1469474968028-56623f02e42e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80"
       ],
       rating: 4.9,
       price: "$180",
@@ -134,10 +139,26 @@ const StayDetailsPage = () => {
         awards: ["Eco-Tourism Excellence Award 2022", "Top 10 Unique Stays in Central America"]
       },
       localExperiences: [
-        { name: "Canopy Zipline Tour", distance: "1.2 miles", description: "Soar through the rainforest canopy on Costa Rica's most thrilling zipline course" },
-        { name: "Cloud Forest Reserve", distance: "3 miles", description: "Explore one of the world's most diverse ecosystems with over 2,500 plant species" },
-        { name: "Night Jungle Safari", distance: "On-site", description: "Guided nocturnal tour to spot rare wildlife like kinkajous and tarantulas" },
-        { name: "Local Coffee Plantation", distance: "5 miles", description: "Learn the process of coffee production from bean to cup with tasting session" }
+        {
+          name: "Canopy Zipline Tour",
+          distance: "1.2 miles",
+          description: "Soar through the rainforest canopy on Costa Rica's most thrilling zipline course"
+        },
+        {
+          name: "Cloud Forest Reserve",
+          distance: "3 miles",
+          description: "Explore one of the world's most diverse ecosystems with over 2,500 plant species"
+        },
+        {
+          name: "Night Jungle Safari",
+          distance: "On-site",
+          description: "Guided nocturnal tour to spot rare wildlife like kinkajous and tarantulas"
+        },
+        {
+          name: "Local Coffee Plantation",
+          distance: "5 miles",
+          description: "Learn the process of coffee production from bean to cup with tasting session"
+        }
       ],
       sustainability: {
         energySource: "100% solar powered",
@@ -152,8 +173,18 @@ const StayDetailsPage = () => {
         humidity: "High (70-90%)"
       },
       guestStories: [
-        { name: "Emily & James", from: "Canada", story: "We woke up to a family of howler monkeys right outside our window! The sunrise view from the deck was absolutely breathtaking.", date: "March 2023" },
-        { name: "Akira", from: "Japan", story: "Spotted 27 different bird species from the treehouse deck in just one morning. The hummingbirds would come right up to the railings!", date: "January 2023" }
+        {
+          name: "Emily & James",
+          from: "Canada",
+          story: "We woke up to a family of howler monkeys right outside our window! The sunrise view from the deck was absolutely breathtaking.",
+          date: "March 2023"
+        },
+        {
+          name: "Akira",
+          from: "Japan",
+          story: "Spotted 27 different bird species from the treehouse deck in just one morning. The hummingbirds would come right up to the railings!",
+          date: "January 2023"
+        }
       ]
     },
     2: {
@@ -192,10 +223,26 @@ const StayDetailsPage = () => {
         awards: ["Historic Preservation Award 2017", "Heritage Accommodation of Excellence 2021"]
       },
       localExperiences: [
-        { name: "Whisky Distillery Tour", distance: "7 miles", description: "Private tour of an authentic Highland distillery with exclusive tastings" },
-        { name: "Loch Boat Trip", distance: "On-site", description: "Row boat provided for guests to explore the misty waters and hidden islands" },
-        { name: "Highland Hiking Trails", distance: "From doorstep", description: "Access to private estate trails with views across the Highlands" },
-        { name: "Traditional Ceilidh Night", distance: "Available on-site", description: "Experience traditional Scottish dancing and music in the Great Hall" }
+        {
+          name: "Whisky Distillery Tour",
+          distance: "7 miles",
+          description: "Private tour of an authentic Highland distillery with exclusive tastings"
+        },
+        {
+          name: "Loch Boat Trip",
+          distance: "On-site",
+          description: "Row boat provided for guests to explore the misty waters and hidden islands"
+        },
+        {
+          name: "Highland Hiking Trails",
+          distance: "From doorstep",
+          description: "Access to private estate trails with views across the Highlands"
+        },
+        {
+          name: "Traditional Ceilidh Night",
+          distance: "Available on-site",
+          description: "Experience traditional Scottish dancing and music in the Great Hall"
+        }
       ],
       sustainability: {
         heating: "Biomass heating system using sustainable local timber",
@@ -210,8 +257,18 @@ const StayDetailsPage = () => {
         phenomenon: "Northern Lights visible during winter months"
       },
       guestStories: [
-        { name: "The Williams Family", from: "United States", story: "Our children felt like princes and princesses for the week! The staff arranged a medieval banquet complete with costumes.", date: "July 2023" },
-        { name: "Henrik & Sofia", from: "Sweden", story: "We saw the Northern Lights from the castle battlements. The caretaker showed us secret rooms that aren't on any floor plans!", date: "December 2022" }
+        {
+          name: "The Williams Family",
+          from: "United States",
+          story: "Our children felt like princes and princesses for the week! The staff arranged a medieval banquet complete with costumes.",
+          date: "July 2023"
+        },
+        {
+          name: "Henrik & Sofia",
+          from: "Sweden",
+          story: "We saw the Northern Lights from the castle battlements. The caretaker showed us secret rooms that aren't on any floor plans!",
+          date: "December 2022"
+        }
       ]
     }
     // Other properties...
@@ -259,7 +316,10 @@ const StayDetailsPage = () => {
           <SafeIcon icon={FiInfo} className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Error Loading Property</h2>
           <p className="text-gray-600 mb-4">{error}</p>
-          <button onClick={() => window.location.reload()} className="bg-primary-600 text-white px-4 py-2 rounded-lg">
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-primary-600 text-white px-4 py-2 rounded-lg"
+          >
             Try Again
           </button>
         </div>
@@ -285,10 +345,10 @@ const StayDetailsPage = () => {
     { icon: FiSun, label: "Best Time", value: property.weather.bestTime },
     { icon: FiThermometer, label: "Temperature", value: property.weather.temperature },
     { icon: FiDroplet, label: "Rainfall", value: property.weather.rainfall },
-    {
-      icon: FiCloud,
-      label: "Special",
-      value: property.weather.specialCondition || property.weather.humidity || property.weather.phenomenon || property.weather.polarNight || property.weather.midnightSun || property.weather.waterTemperature || property.weather.snowfall
+    { 
+      icon: FiCloud, 
+      label: "Special", 
+      value: property.weather.specialCondition || property.weather.humidity || property.weather.phenomenon || property.weather.polarNight || property.weather.midnightSun || property.weather.waterTemperature || property.weather.snowfall 
     }
   ];
 
@@ -307,7 +367,9 @@ const StayDetailsPage = () => {
             <button
               onClick={() => setViewMode('photos')}
               className={`py-4 px-6 font-medium text-sm border-b-2 ${
-                viewMode === 'photos' ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                viewMode === 'photos'
+                  ? 'border-primary-500 text-primary-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
               <SafeIcon icon={FiCamera} className="h-5 w-5 inline mr-2" />
@@ -316,7 +378,9 @@ const StayDetailsPage = () => {
             <button
               onClick={() => setViewMode('virtual-tour')}
               className={`py-4 px-6 font-medium text-sm border-b-2 ${
-                viewMode === 'virtual-tour' ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                viewMode === 'virtual-tour'
+                  ? 'border-primary-500 text-primary-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
               <SafeIcon icon={FiVirtualTour} className="h-5 w-5 inline mr-2" />
@@ -325,7 +389,9 @@ const StayDetailsPage = () => {
             <button
               onClick={() => setViewMode('map')}
               className={`py-4 px-6 font-medium text-sm border-b-2 ${
-                viewMode === 'map' ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                viewMode === 'map'
+                  ? 'border-primary-500 text-primary-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
               <SafeIcon icon={FiMap} className="h-5 w-5 inline mr-2" />
@@ -337,17 +403,21 @@ const StayDetailsPage = () => {
 
       {/* View Content */}
       {viewMode === 'photos' && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <ImageGallery images={property.images} propertyName={property.name} />
+        <div className="w-full">
+          <PropertyImageHero images={property.images} propertyName={property.name} />
         </div>
       )}
-      
+
       {viewMode === 'virtual-tour' && (
         <div className="h-96 md:h-[500px]">
-          <VirtualTour images={property.images} name={property.name} location={property.location} />
+          <VirtualTour
+            images={property.images}
+            name={property.name}
+            location={property.location}
+          />
         </div>
       )}
-      
+
       {viewMode === 'map' && (
         <div className="h-96 md:h-[500px] bg-gray-100 flex items-center justify-center">
           <div className="text-center">
@@ -387,7 +457,9 @@ const StayDetailsPage = () => {
                   <button
                     onClick={handleFavoriteToggle}
                     className={`p-2 rounded-full transition-colors ${
-                      isFavorite(property.id) ? 'bg-red-100 text-red-500' : 'bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-400'
+                      isFavorite(property.id)
+                        ? 'bg-red-100 text-red-500'
+                        : 'bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-400'
                     }`}
                     aria-label={isFavorite(property.id) ? "Remove from favorites" : "Add to favorites"}
                   >
@@ -398,6 +470,7 @@ const StayDetailsPage = () => {
                   </div>
                 </div>
               </div>
+
               <p className="text-lg text-gray-700 mb-8 leading-relaxed">
                 {property.description}
               </p>
@@ -413,7 +486,9 @@ const StayDetailsPage = () => {
                   <button
                     onClick={() => setActiveTab('overview')}
                     className={`py-4 font-medium text-sm border-b-2 ${
-                      activeTab === 'overview' ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      activeTab === 'overview'
+                        ? 'border-primary-500 text-primary-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                     }`}
                   >
                     Overview
@@ -421,7 +496,9 @@ const StayDetailsPage = () => {
                   <button
                     onClick={() => setActiveTab('unique')}
                     className={`py-4 font-medium text-sm border-b-2 ${
-                      activeTab === 'unique' ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      activeTab === 'unique'
+                        ? 'border-primary-500 text-primary-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                     }`}
                   >
                     What Makes It Special
@@ -429,7 +506,9 @@ const StayDetailsPage = () => {
                   <button
                     onClick={() => setActiveTab('experiences')}
                     className={`py-4 font-medium text-sm border-b-2 ${
-                      activeTab === 'experiences' ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      activeTab === 'experiences'
+                        ? 'border-primary-500 text-primary-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                     }`}
                   >
                     Local Experiences
@@ -437,7 +516,9 @@ const StayDetailsPage = () => {
                   <button
                     onClick={() => setActiveTab('stories')}
                     className={`py-4 font-medium text-sm border-b-2 ${
-                      activeTab === 'stories' ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      activeTab === 'stories'
+                        ? 'border-primary-500 text-primary-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                     }`}
                   >
                     Guest Stories
@@ -634,6 +715,7 @@ const StayDetailsPage = () => {
                 <span className="text-3xl font-bold text-primary-600">{property.price}</span>
                 <span className="text-gray-500 ml-2">per night</span>
               </div>
+
               <div className="space-y-4 mb-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Check-in</label>
@@ -659,18 +741,23 @@ const StayDetailsPage = () => {
                   </select>
                 </div>
               </div>
+
               <button className="w-full bg-primary-600 hover:bg-primary-700 text-white py-3 rounded-lg font-semibold text-lg transition-colors duration-300 mb-4">
                 Book Now
               </button>
+
               <button
                 onClick={handleFavoriteToggle}
                 className={`w-full py-3 rounded-lg font-semibold text-lg transition-colors duration-300 mb-4 flex items-center justify-center space-x-2 ${
-                  isFavorite(property.id) ? 'bg-red-100 text-red-600 hover:bg-red-200' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  isFavorite(property.id)
+                    ? 'bg-red-100 text-red-600 hover:bg-red-200'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
                 <SafeIcon icon={FiHeart} className={`h-5 w-5 ${isFavorite(property.id) ? 'fill-current' : ''}`} />
                 <span>{isFavorite(property.id) ? 'Remove from Favorites' : 'Add to Favorites'}</span>
               </button>
+
               <div className="text-center text-sm text-gray-500 mb-4">
                 You won't be charged yet
               </div>

@@ -7,9 +7,9 @@ import supabase from '../../lib/supabase';
 import ImageGalleryManager from './ImageGalleryManager';
 
 const { 
-  FiPlus, FiEdit3, FiTrash2, FiEye, FiStar, FiMapPin, FiSearch, 
-  FiFilter, FiMoreVertical, FiImage, FiDollarSign, FiX, FiLoader, 
-  FiCheck, FiRefreshCw, FiAlertCircle, FiInfo 
+  FiPlus, FiEdit3, FiTrash2, FiEye, FiStar, FiMapPin, FiSearch, FiFilter, 
+  FiMoreVertical, FiImage, FiDollarSign, FiX, FiLoader, FiCheck, FiRefreshCw, 
+  FiAlertCircle, FiInfo
 } = FiIcons;
 
 const AdminPropertyManager = () => {
@@ -49,12 +49,12 @@ const AdminPropertyManager = () => {
       console.log('Fetching properties from Supabase...');
       setLoading(true);
       setBackendError('');
-      
+
       const { data, error } = await supabase
         .from('properties_j293sk4l59')
         .select('*')
         .order('created_at', { ascending: false });
-      
+
       if (error) {
         console.error('Error fetching properties:', error);
         setBackendError('Failed to fetch properties from database');
@@ -73,15 +73,15 @@ const AdminPropertyManager = () => {
   };
 
   const categories = [
-    'All', 'Treehouse', 'Castle', 'Modern', 'Overwater', 'Cave', 
-    'Igloo', 'Forest Cabin', 'Wellness Retreat', 'Lighthouse', 
-    'Houseboat', 'Dome', 'Container Home', 'Windmill', 'Barn'
+    'All', 'Treehouse', 'Castle', 'Modern', 'Overwater', 'Cave', 'Igloo',
+    'Forest Cabin', 'Wellness Retreat', 'Lighthouse', 'Houseboat', 'Dome',
+    'Container Home', 'Windmill', 'Barn'
   ];
 
   const filteredProperties = properties.filter(property => {
     const matchesSearch = searchTerm === '' || 
-      property.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      property.location?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      property.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      property.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (property.category && property.category.toLowerCase().includes(searchTerm.toLowerCase()));
     
     const matchesCategory = filterCategory === 'All' || property.category === filterCategory;
@@ -97,18 +97,20 @@ const AdminPropertyManager = () => {
     try {
       setIsSubmitting(true);
       console.log('Deleting property with ID:', propertyId);
-      
+
       const { error } = await supabase
         .from('properties_j293sk4l59')
         .delete()
         .eq('id', propertyId);
-      
+
       if (error) {
         console.error('Error deleting property:', error);
         alert('Failed to delete property: ' + error.message);
       } else {
         console.log('Property deleted successfully');
-        setProperties(prevProperties => prevProperties.filter(p => p.id !== propertyId));
+        setProperties(prevProperties => 
+          prevProperties.filter(p => p.id !== propertyId)
+        );
         alert('Property deleted successfully!');
       }
     } catch (error) {
@@ -126,14 +128,12 @@ const AdminPropertyManager = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
+    setFormData({ ...formData, [name]: value });
     setFormError('');
   };
 
   const handleImagesChange = (newImages) => {
+    console.log('Images updated:', newImages);
     setFormData({
       ...formData,
       images: newImages,
@@ -145,6 +145,24 @@ const AdminPropertyManager = () => {
   const handleEditProperty = (property) => {
     console.log('Editing property:', property);
     setEditingProperty(property);
+    
+    // Parse images array from database
+    let imagesArray = [];
+    if (property.images) {
+      if (Array.isArray(property.images)) {
+        imagesArray = property.images;
+      } else if (typeof property.images === 'string') {
+        try {
+          imagesArray = JSON.parse(property.images);
+        } catch (e) {
+          // If parsing fails, treat as single image URL
+          imagesArray = [property.images];
+        }
+      }
+    } else if (property.image) {
+      imagesArray = [property.image];
+    }
+    
     setFormData({
       name: property.name || '',
       location: property.location || '',
@@ -152,7 +170,7 @@ const AdminPropertyManager = () => {
       price: property.price?.toString() || '',
       description: property.description || '',
       image: property.image || '',
-      images: Array.isArray(property.images) ? property.images : [property.image].filter(Boolean),
+      images: imagesArray,
       status: property.status || 'Active',
       rating: property.rating || 4.5
     });
@@ -186,37 +204,36 @@ const AdminPropertyManager = () => {
       setFormError('Please fill in all required fields (Name, Location, Category, and Price)');
       return false;
     }
-    
+
     const priceValue = parseFloat(formData.price);
     if (isNaN(priceValue) || priceValue <= 0) {
       setFormError('Price must be a positive number');
       return false;
     }
-    
+
     const ratingValue = parseFloat(formData.rating);
     if (isNaN(ratingValue) || ratingValue < 0 || ratingValue > 5) {
       setFormError('Rating must be between 0 and 5');
       return false;
     }
-    
+
     setFormError('');
     return true;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     if (!validateForm()) return;
-    
+
     setIsSubmitting(true);
     setSubmitSuccess(false);
     setFormError('');
     setDebugInfo('');
-    
+
     try {
       const priceValue = parseFloat(formData.price);
       const ratingValue = parseFloat(formData.rating);
-      
+
       const propertyData = {
         name: formData.name.trim(),
         location: formData.location.trim(),
@@ -229,7 +246,7 @@ const AdminPropertyManager = () => {
         rating: ratingValue,
         updated_at: new Date().toISOString()
       };
-      
+
       if (editingProperty) {
         setDebugInfo(`Starting update for property ID: ${editingProperty.id}`);
         
@@ -239,35 +256,34 @@ const AdminPropertyManager = () => {
           .update(propertyData)
           .eq('id', editingProperty.id)
           .select();
-        
+
         if (error) {
           console.error('Update error:', error);
           setFormError(`Failed to update property: ${error.message}`);
           setDebugInfo(prevDebug => prevDebug + `\nUpdate error: ${JSON.stringify(error)}`);
           return;
         }
-        
+
         console.log('Update successful:', data);
         setDebugInfo(prevDebug => prevDebug + `\nUpdate successful: ${JSON.stringify(data)}`);
-        
+
         // Update local state - use returned data if available, otherwise use our form data
         const updatedProperty = data && data.length > 0 ? data[0] : { ...editingProperty, ...propertyData };
-        
         setProperties(prevProperties => 
           prevProperties.map(p => 
             p.id === editingProperty.id ? updatedProperty : p
           )
         );
-        
+
         setSubmitSuccess(true);
-        
+
         // Close modal after showing success
         setTimeout(() => {
           setShowAddModal(false);
           setEditingProperty(null);
           resetForm();
         }, 2000);
-        
+
       } else {
         console.log('Creating new property with data:', propertyData);
         
@@ -279,22 +295,22 @@ const AdminPropertyManager = () => {
             created_at: new Date().toISOString()
           }])
           .select();
-        
+
         if (error) {
           console.error('Error creating property:', error);
           setFormError('Failed to create property: ' + (error.message || 'Unknown error'));
           return;
         }
-        
+
         console.log('Property created successfully, returned data:', data);
-        
+
         // Add to local state
         if (data && data.length > 0) {
           setProperties(prevProperties => [data[0], ...prevProperties]);
         }
-        
+
         setSubmitSuccess(true);
-        
+
         // Close modal after showing success
         setTimeout(() => {
           setShowAddModal(false);
@@ -335,14 +351,10 @@ const AdminPropertyManager = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Active':
-        return 'bg-green-100 text-green-800';
-      case 'Inactive':
-        return 'bg-red-100 text-red-800';
-      case 'Pending':
-        return 'bg-yellow-100 text-yellow-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+      case 'Active': return 'bg-green-100 text-green-800';
+      case 'Inactive': return 'bg-red-100 text-red-800';
+      case 'Pending': return 'bg-yellow-100 text-yellow-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -350,6 +362,46 @@ const AdminPropertyManager = () => {
     if (e.target.src !== 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==') {
       e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==';
     }
+  };
+
+  // Helper function to get image count display
+  const getImageCountDisplay = (property) => {
+    let imageCount = 0;
+    
+    if (property.images) {
+      if (Array.isArray(property.images)) {
+        imageCount = property.images.length;
+      } else if (typeof property.images === 'string') {
+        try {
+          const parsed = JSON.parse(property.images);
+          imageCount = Array.isArray(parsed) ? parsed.length : 1;
+        } catch (e) {
+          imageCount = 1; // Treat as single image URL
+        }
+      }
+    } else if (property.image) {
+      imageCount = 1;
+    }
+    
+    return imageCount;
+  };
+
+  // Helper function to get primary image
+  const getPrimaryImage = (property) => {
+    if (property.images) {
+      if (Array.isArray(property.images) && property.images.length > 0) {
+        return property.images[0];
+      } else if (typeof property.images === 'string') {
+        try {
+          const parsed = JSON.parse(property.images);
+          return Array.isArray(parsed) && parsed.length > 0 ? parsed[0] : property.image;
+        } catch (e) {
+          return property.images; // Treat as single image URL
+        }
+      }
+    }
+    
+    return property.image || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==';
   };
 
   if (loading) {
@@ -376,8 +428,8 @@ const AdminPropertyManager = () => {
           <h1 className="text-2xl font-bold text-gray-900">Property Management</h1>
           <p className="text-gray-600 mt-1">Manage all unique stays and accommodations</p>
         </div>
-        <button 
-          onClick={handleAddNewProperty} 
+        <button
+          onClick={handleAddNewProperty}
           className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
         >
           <SafeIcon icon={FiPlus} className="h-5 w-5" />
@@ -390,10 +442,7 @@ const AdminPropertyManager = () => {
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center">
           <SafeIcon icon={FiAlertCircle} className="h-5 w-5 mr-2" />
           <span>{backendError}</span>
-          <button 
-            onClick={fetchProperties}
-            className="ml-auto text-red-600 hover:text-red-800"
-          >
+          <button onClick={fetchProperties} className="ml-auto text-red-600 hover:text-red-800">
             <SafeIcon icon={FiRefreshCw} className="h-4 w-4" />
           </button>
         </div>
@@ -462,24 +511,24 @@ const AdminPropertyManager = () => {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredProperties.map((property) => (
-                <motion.tr 
-                  key={property.id} 
-                  initial={{ opacity: 0 }} 
-                  animate={{ opacity: 1 }} 
+                <motion.tr
+                  key={property.id}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
                   className="hover:bg-gray-50"
                 >
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="relative h-12 w-12 rounded-lg overflow-hidden">
-                        <img 
-                          src={property.image || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg=='} 
-                          alt={property.name} 
-                          className="h-full w-full object-cover" 
+                        <img
+                          src={getPrimaryImage(property)}
+                          alt={property.name}
+                          className="h-full w-full object-cover"
                           onError={handleImageError}
                         />
-                        {Array.isArray(property.images) && property.images.length > 1 && (
+                        {getImageCountDisplay(property) > 1 && (
                           <div className="absolute bottom-0 right-0 bg-black bg-opacity-60 text-white text-xs px-1 rounded-tl">
-                            +{property.images.length - 1}
+                            +{getImageCountDisplay(property) - 1}
                           </div>
                         )}
                       </div>
@@ -516,14 +565,14 @@ const AdminPropertyManager = () => {
                       <button className="text-gray-400 hover:text-primary-600">
                         <SafeIcon icon={FiEye} className="h-4 w-4" />
                       </button>
-                      <button 
-                        onClick={() => handleEditProperty(property)} 
+                      <button
+                        onClick={() => handleEditProperty(property)}
                         className="text-gray-400 hover:text-primary-600"
                       >
                         <SafeIcon icon={FiEdit3} className="h-4 w-4" />
                       </button>
-                      <button 
-                        onClick={() => handleDeleteProperty(property.id)} 
+                      <button
+                        onClick={() => handleDeleteProperty(property.id)}
                         className="text-gray-400 hover:text-red-600"
                       >
                         <SafeIcon icon={FiTrash2} className="h-4 w-4" />
@@ -549,9 +598,9 @@ const AdminPropertyManager = () => {
       {/* Add/Edit Property Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <motion.div 
-            initial={{ scale: 0.9, opacity: 0 }} 
-            animate={{ scale: 1, opacity: 1 }} 
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.3 }}
             className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto"
           >
@@ -559,8 +608,8 @@ const AdminPropertyManager = () => {
               <h3 className="text-2xl font-semibold text-gray-900">
                 {editingProperty ? 'Edit Property' : 'Add New Property'}
               </h3>
-              <button 
-                onClick={handleCloseModal} 
+              <button
+                onClick={handleCloseModal}
                 className="text-gray-400 hover:text-gray-600"
               >
                 <SafeIcon icon={FiX} className="h-6 w-6" />
@@ -597,6 +646,7 @@ const AdminPropertyManager = () => {
                     placeholder="Enter property name"
                   />
                 </div>
+
                 <div>
                   <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">
                     Location*
@@ -612,6 +662,7 @@ const AdminPropertyManager = () => {
                     placeholder="Enter location"
                   />
                 </div>
+
                 <div>
                   <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
                     Category*
@@ -629,6 +680,7 @@ const AdminPropertyManager = () => {
                     ))}
                   </select>
                 </div>
+
                 <div>
                   <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
                     Price per Night (€)*
@@ -646,6 +698,7 @@ const AdminPropertyManager = () => {
                     placeholder="Enter price"
                   />
                 </div>
+
                 <div>
                   <label htmlFor="rating" className="block text-sm font-medium text-gray-700 mb-1">
                     Rating (0-5)
@@ -663,6 +716,7 @@ const AdminPropertyManager = () => {
                     placeholder="Enter rating"
                   />
                 </div>
+
                 <div>
                   <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
                     Status
@@ -679,6 +733,7 @@ const AdminPropertyManager = () => {
                     <option value="Pending">Pending</option>
                   </select>
                 </div>
+
                 <div className="md:col-span-2">
                   <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
                     Description
@@ -694,13 +749,13 @@ const AdminPropertyManager = () => {
                   ></textarea>
                 </div>
               </div>
-              
+
               {/* Image Gallery Manager */}
               <div className="mb-6">
-                <ImageGalleryManager 
-                  propertyId={editingProperty?.id} 
-                  initialImages={formData.images} 
-                  onImagesChange={handleImagesChange} 
+                <ImageGalleryManager
+                  propertyId={editingProperty?.id}
+                  initialImages={formData.images}
+                  onImagesChange={handleImagesChange}
                 />
               </div>
 
@@ -738,9 +793,9 @@ const AdminPropertyManager = () => {
       {/* Delete Confirmation Modal */}
       {deleteConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <motion.div 
-            initial={{ scale: 0.9, opacity: 0 }} 
-            animate={{ scale: 1, opacity: 1 }} 
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.3 }}
             className="bg-white rounded-lg p-6 max-w-md w-full mx-4"
           >

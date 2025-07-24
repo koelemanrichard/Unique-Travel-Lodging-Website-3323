@@ -2,7 +2,6 @@ import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../../common/SafeIcon';
-import supabase from '../../lib/supabase';
 
 const { 
   FiImage, FiPlus, FiX, FiLink, FiUpload, FiMove, FiTrash2, 
@@ -66,8 +65,20 @@ const ImageGalleryManager = ({ propertyId, initialImages = [], onImagesChange })
     onImagesChange(newImages);
   };
   
+  // Handle file upload button click
+  const handleUploadClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+  
   // Handle file upload
   const handleFileUpload = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     const files = e.target.files;
     
     if (!files || files.length === 0) return;
@@ -133,6 +144,10 @@ const ImageGalleryManager = ({ propertyId, initialImages = [], onImagesChange })
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
+      // Clear the file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
   
@@ -166,23 +181,30 @@ const ImageGalleryManager = ({ propertyId, initialImages = [], onImagesChange })
     setDraggedIndex(null);
   };
   
+  // Handle modal backdrop click
+  const handleModalClick = (e) => {
+    e.stopPropagation();
+  };
+  
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold text-gray-900">Property Images</h3>
         <div className="flex gap-2">
           <button
+            type="button"
             onClick={() => setIsAddingUrl(true)}
             disabled={isUploading || images.length >= MAX_IMAGES}
-            className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center text-sm"
+            className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center text-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <SafeIcon icon={FiLink} className="h-4 w-4 mr-1" />
             Add URL
           </button>
           <button
-            onClick={() => fileInputRef.current?.click()}
+            type="button"
+            onClick={handleUploadClick}
             disabled={isUploading || images.length >= MAX_IMAGES}
-            className="px-3 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center text-sm"
+            className="px-3 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center text-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <SafeIcon icon={FiUpload} className="h-4 w-4 mr-1" />
             Upload
@@ -194,6 +216,7 @@ const ImageGalleryManager = ({ propertyId, initialImages = [], onImagesChange })
             accept="image/*"
             multiple
             className="hidden"
+            onClick={(e) => e.stopPropagation()}
           />
         </div>
       </div>
@@ -234,12 +257,13 @@ const ImageGalleryManager = ({ propertyId, initialImages = [], onImagesChange })
       
       {/* Add image URL modal */}
       {isAddingUrl && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setIsAddingUrl(false)}>
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.3 }}
             className="bg-white rounded-lg p-6 max-w-md w-full mx-4"
+            onClick={handleModalClick}
           >
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Add Image URL</h3>
             <div className="mb-4">
@@ -254,10 +278,20 @@ const ImageGalleryManager = ({ propertyId, initialImages = [], onImagesChange })
                 placeholder="https://example.com/image.jpg"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleAddImageUrl();
+                  } else if (e.key === 'Escape') {
+                    setIsAddingUrl(false);
+                    setImageUrl('');
+                    setError('');
+                  }
+                }}
               />
             </div>
             <div className="flex justify-end space-x-2">
               <button
+                type="button"
                 onClick={() => {
                   setIsAddingUrl(false);
                   setImageUrl('');
@@ -268,6 +302,7 @@ const ImageGalleryManager = ({ propertyId, initialImages = [], onImagesChange })
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={handleAddImageUrl}
                 disabled={!imageUrl.trim() || isUploading}
                 className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:bg-primary-400 flex items-center"
@@ -291,26 +326,31 @@ const ImageGalleryManager = ({ propertyId, initialImages = [], onImagesChange })
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {images.map((src, index) => (
             <div
-              key={index}
+              key={`image-${index}-${src.substring(0, 20)}`}
               draggable
               onDragStart={() => handleDragStart(index)}
               onDragOver={(e) => handleDragOver(e, index)}
               onDragEnd={handleDragEnd}
               className={`relative group rounded-lg overflow-hidden border-2 ${
                 draggedIndex === index ? 'border-primary-500' : 'border-gray-200'
-              } h-32`}
+              } h-32 bg-gray-100`}
             >
               <img
                 src={src}
                 alt={`Property image ${index + 1}`}
                 className="w-full h-full object-cover"
                 onError={(e) => {
+                  console.error('Image failed to load:', src);
                   e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==';
+                }}
+                onLoad={() => {
+                  console.log('Image loaded successfully:', src.substring(0, 50) + '...');
                 }}
               />
               <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
                 <div className="flex space-x-2">
                   <button
+                    type="button"
                     onClick={() => handleRemoveImage(index)}
                     className="p-1.5 bg-red-600 text-white rounded-full hover:bg-red-700"
                     title="Remove image"
@@ -318,6 +358,7 @@ const ImageGalleryManager = ({ propertyId, initialImages = [], onImagesChange })
                     <SafeIcon icon={FiTrash2} className="h-4 w-4" />
                   </button>
                   <button
+                    type="button"
                     className="p-1.5 bg-gray-800 text-white rounded-full cursor-move"
                     title="Drag to reorder"
                   >
@@ -336,7 +377,8 @@ const ImageGalleryManager = ({ propertyId, initialImages = [], onImagesChange })
           {/* Add image placeholder */}
           {images.length < MAX_IMAGES && (
             <button
-              onClick={() => fileInputRef.current?.click()}
+              type="button"
+              onClick={handleUploadClick}
               className="h-32 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-gray-500 hover:border-primary-500 hover:text-primary-600 transition-colors"
             >
               <SafeIcon icon={FiPlus} className="h-8 w-8 mb-2" />
@@ -351,6 +393,24 @@ const ImageGalleryManager = ({ propertyId, initialImages = [], onImagesChange })
           <p className="text-xs text-gray-400 mt-1">
             Upload images or add image URLs to showcase this property
           </p>
+          <div className="mt-4 flex justify-center space-x-2">
+            <button
+              type="button"
+              onClick={handleUploadClick}
+              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center text-sm"
+            >
+              <SafeIcon icon={FiUpload} className="h-4 w-4 mr-2" />
+              Upload Images
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsAddingUrl(true)}
+              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center text-sm"
+            >
+              <SafeIcon icon={FiLink} className="h-4 w-4 mr-2" />
+              Add URL
+            </button>
+          </div>
         </div>
       )}
       
